@@ -1,26 +1,72 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #07080c;
+  --foreground: #f4f6fb;
+  --accent: #ff2d2d; /* F1 red */
+  --accent-glow: #ff5a3c;
+  --carbon: #0d0f15;
+  --muted: #8a93a6;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-muted: var(--muted);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  height: 100%;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* The canvas should never intercept text selection / scroll gestures. */
+.canvas-root {
+  position: fixed;
+  inset: 0;
+  touch-action: none;
+}
+
+/* Hide scrollbars inside HUD panels but keep scrollability. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Carbon-fibre-ish panel surface used across HUD overlays. */
+.hud-panel {
+  background: linear-gradient(
+    160deg,
+    rgba(18, 20, 28, 0.92),
+    rgba(10, 11, 16, 0.92)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 20px 60px -20px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+}
+
+.text-glow {
+  text-shadow: 0 0 24px rgba(255, 45, 45, 0.55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
 }
