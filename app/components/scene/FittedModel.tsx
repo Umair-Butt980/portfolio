@@ -4,6 +4,10 @@ import { useGLTF } from "@react-three/drei";
 import { useMemo } from "react";
 import * as THREE from "three";
 import type { ThreeElements } from "@react-three/fiber";
+import {
+  normalizeMaterials,
+  type NormalizeOptions,
+} from "@/app/components/scene/materials";
 
 export type FittedModelProps = ThreeElements["group"] & {
   url: string;
@@ -15,6 +19,8 @@ export type FittedModelProps = ThreeElements["group"] & {
   shadows?: boolean;
   /** Mesh/node names to hide and exclude from the fit (e.g. baked ground planes). */
   hideNames?: string[];
+  /** Unify material response across downloaded assets (default on). */
+  normalize?: boolean | NormalizeOptions;
 };
 
 /**
@@ -32,6 +38,7 @@ export function FittedModel({
   groundize = true,
   shadows = true,
   hideNames,
+  normalize = true,
   children,
   ...props
 }: FittedModelProps) {
@@ -39,6 +46,11 @@ export function FittedModel({
 
   // Clone so the same GLB can be reused without sharing transforms.
   const cloned = useMemo(() => scene.clone(true), [scene]);
+
+  useMemo(() => {
+    if (!normalize) return;
+    normalizeMaterials(cloned, normalize === true ? undefined : normalize);
+  }, [cloned, normalize]);
 
   const { scale, position } = useMemo(() => {
     const hidden = new Set(hideNames ?? []);

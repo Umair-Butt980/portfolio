@@ -4,7 +4,7 @@ export const TUNING = {
   /** Render hotspot hit-boxes as translucent coloured cubes. */
   showHotspots: false,
   /** Keep the WebGL buffer readable for automated screenshots (scripts/shoot.mjs). */
-  screenshotMode: false,
+  screenshotMode: true,
   /** Postprocessing (bloom/vignette). */
   enableEffects: true,
 };

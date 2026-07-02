@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ThreeEvent } from "@react-three/fiber";
 import { useFocusStore, type Zone } from "@/app/store/useFocusStore";
 import { TUNING } from "@/app/components/scene/devTuning";
@@ -27,6 +27,13 @@ export function Hotspot({ zone, position, size, rotation }: HotspotProps) {
 
   const active = ready && focus === "idle";
 
+  // Don't leave a pointer cursor stuck if we unmount mid-hover.
+  useEffect(() => {
+    return () => {
+      document.body.style.cursor = "auto";
+    };
+  }, []);
+
   const onOver = (e: ThreeEvent<PointerEvent>) => {
     if (!active) return;
     e.stopPropagation();
@@ -43,6 +50,8 @@ export function Hotspot({ zone, position, size, rotation }: HotspotProps) {
 
   const onClick = (e: ThreeEvent<MouseEvent>) => {
     if (!active) return;
+    // A drag that ends on the hotspot is camera movement, not a click.
+    if (e.delta > 4) return;
     e.stopPropagation();
     document.body.style.cursor = "auto";
     setFocus(zone);

@@ -1,83 +1,115 @@
 "use client";
 
-import { MeshReflectorMaterial } from "@react-three/drei";
-import { Suspense } from "react";
+import { MeshReflectorMaterial, useGLTF } from "@react-three/drei";
+import { Suspense, useMemo } from "react";
+import * as THREE from "three";
 import { FittedModel } from "@/app/components/scene/FittedModel";
+import { AOBlob } from "@/app/components/scene/AOBlob";
+import { normalizeMaterials } from "@/app/components/scene/materials";
+import { makeFloorTextures } from "@/app/components/scene/textures/canvasTextures";
+import { PALETTE } from "@/app/constants/palette";
 
 const MODELS = {
+  shell: "/models/optimized/red_bull_f1_garage.glb",
   mechanic: "/models/optimized/car_mechanic.glb",
   tyres: "/models/optimized/tyre_holder_2023.glb",
 };
 
-/** The pit-garage environment: reflective floor, walls, ceiling and decor. */
+// The Red Bull garage GLB is authored at ~10 units per meter with its floor
+// at y = -6. Scale to meters and lift so the floor sits on y = 0; slide the
+// interior so the pit bay (monitors/tool carts) wraps the car at the origin.
+const SHELL_SCALE = 0.1;
+// Slide the building so the open pit bay (the Red Bull floor decals) wraps
+// the origin, where the hero car parks.
+const SHELL_POSITION: [number, number, number] = [-1.3, 0.6, -4];
+const SHELL_ROTATION: [number, number, number] = [0, 0, 0];
+
+// Shell nodes hidden to clear the car bay.
+const SHELL_HIDE = new Set<string>([]);
+
+/** Pre-dressed pit-garage building used as the environment shell. */
+function GarageShell() {
+  const { scene } = useGLTF(MODELS.shell, "/draco/");
+  const cloned = useMemo(() => {
+    const c = scene.clone(true);
+    normalizeMaterials(c, { desaturate: 0.1, envMapIntensity: 0.3 });
+    c.traverse((o) => {
+      if (SHELL_HIDE.has(o.name)) o.visible = false;
+      const mesh = o as THREE.Mesh;
+      if (!mesh.isMesh) return;
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+    });
+    return c;
+  }, [scene]);
+
+  return (
+    <group
+      position={SHELL_POSITION}
+      rotation={SHELL_ROTATION}
+      scale={SHELL_SCALE}
+    >
+      <primitive
+        object={cloned}
+        onClick={(e: { object: { name: string; parent: { name: string } | null }; point: THREE.Vector3; stopPropagation: () => void }) => {
+          // TEMP debug: identify shell parts from automated clicks.
+          console.error(
+            "SHELL-HIT:", e.object.name,
+            "parent:", e.object.parent?.name,
+            "at:", e.point.toArray().map((v: number) => v.toFixed(2)).join(",")
+          );
+        }}
+      />
+    </group>
+  );
+}
+
+/** The pit-garage environment: dressed shell, worn-concrete floor and decor. */
 export function Garage() {
+  const floorTextures = useMemo(() => makeFloorTextures(16, 12), []);
+
   return (
     <group>
-      {/* Reflective floor */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-        <planeGeometry args={[40, 40]} />
+      {/* Worn concrete + painted pit box over the shell floor. Reflections
+          only show where the roughness map says the floor is polished. */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]} receiveShadow>
+        <planeGeometry args={[16, 12]} />
         <MeshReflectorMaterial
-          resolution={1024}
-          mirror={0.45}
-          mixBlur={8}
-          mixStrength={1.2}
-          blur={[300, 100]}
-          roughness={0.85}
+          map={floorTextures.map}
+          roughnessMap={floorTextures.roughnessMap}
+          resolution={512}
+          mirror={0.15}
+          mixBlur={6}
+          mixStrength={0.5}
+          blur={[200, 80]}
+          roughness={0.9}
           depthScale={1.1}
           minDepthThreshold={0.4}
           maxDepthThreshold={1.2}
-          color="#0a0c12"
-          metalness={0.6}
+          color={PALETTE.concrete}
+          metalness={0}
         />
       </mesh>
 
-      {/* Pit-lane centre line under the car */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
-        <planeGeometry args={[0.25, 30]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.06} />
-      </mesh>
-
-      {/* Walls */}
-      <mesh position={[0, 6, -10]} receiveShadow>
-        <planeGeometry args={[40, 18]} />
-        <meshStandardMaterial color="#0c0e14" roughness={0.95} />
-      </mesh>
-      <mesh position={[-10, 6, 0]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
-        <planeGeometry args={[40, 18]} />
-        <meshStandardMaterial color="#0c0e14" roughness={0.95} />
-      </mesh>
-      <mesh position={[10, 6, 0]} rotation={[0, -Math.PI / 2, 0]} receiveShadow>
-        <planeGeometry args={[40, 18]} />
-        <meshStandardMaterial color="#0c0e14" roughness={0.95} />
-      </mesh>
-
-      {/* Ceiling light strips (emissive bars — picked up by bloom) */}
-      {[-3, 0, 3].map((x) => (
-        <mesh key={x} position={[x, 7.4, -1]}>
-          <boxGeometry args={[0.4, 0.1, 9]} />
-          <meshStandardMaterial
-            color="#ffffff"
-            emissive="#ffffff"
-            emissiveIntensity={2.2}
-          />
-        </mesh>
-      ))}
-
-      {/* Decor models */}
       <Suspense fallback={null}>
+        <GarageShell />
         <FittedModel
           url={MODELS.tyres}
-          fit={3.2}
-          position={[-6.5, 0, -5.5]}
+          fit={2.2}
+          position={[-5.2, 0, -3.2]}
           rotation={[0, Math.PI / 5, 0]}
         />
         <FittedModel
           url={MODELS.mechanic}
-          fit={2.2}
-          position={[4.6, 0, 2.4]}
-          rotation={[0, -Math.PI / 1.6, 0]}
+          fit={1.8}
+          position={[3.1, 0, 0.6]}
+          rotation={[0, -2.2, 0]}
         />
+        <AOBlob position={[-5.2, 0, -3.2]} radius={1.4} />
+        <AOBlob position={[3.1, 0, 0.6]} radius={0.9} opacity={0.45} />
       </Suspense>
     </group>
   );
 }
+
+useGLTF.preload(MODELS.shell, "/draco/");

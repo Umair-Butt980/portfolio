@@ -1,79 +1,68 @@
 "use client";
 
 import { Environment, Lightformer } from "@react-three/drei";
+import { PALETTE } from "@/app/constants/palette";
 
 /**
- * Clean studio-garage lighting: a warm key from above, cool fill, red rim
- * accents either side of the car, plus an environment map for reflections.
+ * One warm dominant + one accent. The key is a spotlight pooled on the car —
+ * a light pool reads "garage lamp", a directional reads "sun in a void".
+ * Cyan never appears here; it is reserved for interactive hover feedback.
  */
 export function Lighting() {
   return (
     <>
-      <ambientLight intensity={0.25} />
+      <ambientLight intensity={0.15} color={PALETTE.keyWarm} />
 
-      {/* Key light — overhead garage gantry. */}
-      <directionalLight
-        position={[4, 9, 5]}
-        intensity={2.2}
-        color="#fff4e6"
+      {/* Key — halogen gantry lamp over the car. Sole shadow caster. */}
+      <spotLight
+        position={[2.5, 3.9, 1.5]}
+        angle={0.85}
+        penumbra={0.7}
+        intensity={90}
+        color={PALETTE.keyWarm}
+        distance={18}
+        decay={1.6}
         castShadow
         shadow-mapSize={[2048, 2048]}
         shadow-bias={-0.0004}
-      >
-        <orthographicCamera
-          attach="shadow-camera"
-          args={[-8, 8, 8, -8, 0.1, 30]}
-        />
-      </directionalLight>
+      />
 
-      {/* Cool fill from the opposite side. */}
-      <directionalLight position={[-6, 5, -4]} intensity={0.5} color="#9bc2ff" />
+      {/* Dim neutral fill so shadow sides don't go to pure black. */}
+      <directionalLight position={[-6, 5, -4]} intensity={0.25} color="#cfc8bd" />
 
-      {/* Red rim accents — the F1 mood. */}
-      <pointLight position={[-5, 2, 2]} intensity={30} color="#ff2d2d" distance={14} decay={2} />
-      <pointLight position={[5, 2, -2]} intensity={28} color="#ff5a3c" distance={14} decay={2} />
-
-      {/* Headlight-ish kick from the front. */}
-      <spotLight
-        position={[0, 3.2, 7]}
-        angle={0.7}
-        penumbra={0.8}
-        intensity={18}
-        color="#ffffff"
-        distance={20}
+      {/* Accent rims low behind the car for silhouette. */}
+      <pointLight
+        position={[-4, 1.2, -3]}
+        intensity={12}
+        color={PALETTE.accent}
+        distance={12}
+        decay={2}
+      />
+      <pointLight
+        position={[3.8, 0.6, -2.2]}
+        intensity={7}
+        color={PALETTE.accent}
+        distance={10}
+        decay={2}
       />
 
       {/* Procedural studio environment — baked once, locally, with no network
-          fetch (a CDN preset would suspend the whole canvas if it hung). Gives
-          the car clean reflections. */}
-      <Environment resolution={256} frames={1} environmentIntensity={0.4}>
-        {/* Soft white ceiling box */}
+          fetch (a CDN preset would suspend the whole canvas if it hung). */}
+      <Environment resolution={256} frames={1} environmentIntensity={0.5}>
+        {/* Warm ceiling panel */}
         <Lightformer
-          intensity={2.4}
+          intensity={2.2}
           position={[0, 6, 0]}
           rotation={[Math.PI / 2, 0, 0]}
-          scale={[12, 12, 1]}
-          color="#ffffff"
+          scale={[10, 10, 1]}
+          color={PALETTE.keyWarm}
         />
-        {/* Cool key from the front */}
+        {/* Single dim accent side panel */}
         <Lightformer
-          intensity={1.4}
-          position={[0, 3, 6]}
-          scale={[8, 6, 1]}
-          color="#bcd4ff"
-        />
-        {/* Red accent rims */}
-        <Lightformer
-          intensity={1.6}
-          position={[-6, 2, 1]}
-          scale={[3, 6, 1]}
-          color="#ff2d2d"
-        />
-        <Lightformer
-          intensity={1.2}
-          position={[6, 2, -1]}
-          scale={[3, 6, 1]}
-          color="#ff7a3c"
+          intensity={0.8}
+          position={[-6, 2, 0]}
+          scale={[3, 5, 1]}
+          color={PALETTE.accent}
         />
       </Environment>
     </>

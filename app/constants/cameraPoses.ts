@@ -9,39 +9,35 @@ export interface CameraPose {
 
 // Scene convention:
 //   - Car is normalized & centered at the origin.
-//   - Car length runs along Z; nose points toward +Z (the garage opening / camera).
-//   - Rear of the car faces -Z (the back wall).
-//   - Pit board lives on the left wall at roughly x = -4.5.
-// Values tuned live with leva, then baked here. Keep in sync with hotspot
-// placement in Car.tsx / PitBoard.tsx.
+//   - Car length runs along Z; nose points toward +Z (the garage opening).
+//   - Red Bull garage shell occupancy (triangle-sampled at camera height):
+//     back counter cluster z ≤ -2.9 (x -4.2..3), pit-wall furniture row at
+//     z 2.9..4.2 with a gap at x -1..0.8, side fixtures from x ≈ 6.5.
+//     Free corridors: alongside the car (x ±1.5..5) and the front gap.
+//   - Pit board stands at x = -4.5.
+// Keep in sync with hotspot placement in Car.tsx / PitBoard.tsx and the
+// CameraRig clamps.
 export const CAMERA_POSES: Record<Focus, CameraPose> = {
   idle: {
-    position: [5.2, 2.8, 6.2],
-    target: [0, 0.55, 0],
+    position: [4.0, 1.7, 2.0],
+    target: [0, 0.6, 0],
   },
   frontend: {
-    position: [0, 1.15, 5.4],
-    target: [0, 0.55, 1.6],
+    position: [1.4, 0.9, 2.9],
+    target: [0, 0.5, 1.5],
   },
   backend: {
-    position: [0, 1.25, -5.4],
-    target: [0, 0.55, -1.6],
+    position: [2.2, 1.5, -2.5],
+    target: [0, 0.6, -1.4],
   },
   steering: {
     position: [0, 1.35, 2.1],
     target: [0, 0.95, 0.2],
   },
   experience: {
-    position: [-1.4, 1.7, 3.0],
-    target: [-4.5, 1.6, 0],
+    position: [-1.2, 1.6, 2.6],
+    target: [-4.5, 1.5, 0],
   },
-};
-
-// Idle camera gently orbits around this radius/height.
-export const IDLE_ORBIT = {
-  radius: Math.hypot(CAMERA_POSES.idle.position[0], CAMERA_POSES.idle.position[2]),
-  height: CAMERA_POSES.idle.position[1],
-  speed: 0.05, // radians/sec
 };
 
 export const CAMERA_TWEEN_DURATION = 1.25; // seconds

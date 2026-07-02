@@ -9,7 +9,7 @@ export function Effects({ enabled = true }: { enabled?: boolean }) {
     <EffectComposer multisampling={4}>
       <Bloom
         intensity={0.7}
-        luminanceThreshold={0.75}
+        luminanceThreshold={0.85}
         luminanceSmoothing={0.2}
         mipmapBlur
       />

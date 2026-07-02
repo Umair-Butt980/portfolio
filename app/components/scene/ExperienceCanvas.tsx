@@ -5,6 +5,7 @@ import { useGLTF, ContactShadows, AdaptiveDpr } from "@react-three/drei";
 import { Suspense } from "react";
 import * as THREE from "three";
 import { CAMERA_POSES } from "@/app/constants/cameraPoses";
+import { PALETTE } from "@/app/constants/palette";
 import { CameraRig } from "@/app/components/scene/CameraRig";
 import { Lighting } from "@/app/components/scene/Lighting";
 import { Garage } from "@/app/components/scene/Garage";
@@ -21,6 +22,7 @@ const MODELS = [
   "/models/optimized/car_mechanic.glb",
   "/models/optimized/tyre_holder_2023.glb",
   "/models/optimized/pit_board.glb",
+  "/models/optimized/red_bull_f1_garage.glb",
 ];
 MODELS.forEach((url) => useGLTF.preload(url, "/draco/"));
 
@@ -32,7 +34,7 @@ export function ExperienceCanvas() {
       gl={{
         antialias: true,
         toneMapping: THREE.ACESFilmicToneMapping,
-        toneMappingExposure: 1.05,
+        toneMappingExposure: 1.1,
         // Lets headless/automated screenshots read back the WebGL frame.
         preserveDrawingBuffer: TUNING.screenshotMode,
       }}
@@ -43,8 +45,8 @@ export function ExperienceCanvas() {
         far: 100,
       }}
     >
-      <color attach="background" args={["#07080c"]} />
-      <fog attach="fog" args={["#07080c", 14, 36]} />
+      <color attach="background" args={[PALETTE.bgNight]} />
+      <fog attach="fog" args={[PALETTE.bgNight, 10, 26]} />
 
       <CameraRig />
       <Lighting />
@@ -58,11 +60,11 @@ export function ExperienceCanvas() {
 
       <ContactShadows
         position={[0, 0.02, 0]}
-        scale={14}
+        scale={12}
         blur={2.6}
         far={6}
         opacity={0.55}
-        resolution={1024}
+        resolution={512}
       />
 
       <Effects enabled={TUNING.enableEffects} />
